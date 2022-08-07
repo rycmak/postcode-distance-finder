@@ -7,11 +7,12 @@ import numpy as np
 import pandas as pd
 import requests
 import json
+import time
 
 st.title("Find total distance from list of postcodes to destination")
 
 def get_destination_lat_long():
-  destination_address = st.text_input("Enter destination address and press Enter:",
+  destination_address = st.text_input("Input destination address and press Enter:",
                                       help="Please include street number, street name, suburb, and city",
                                       placeholder="E.g.: 72 Victoria Street West, Auckland 1010")
   locator = geopy.geocoders.Nominatim(user_agent="postcode-distance-app")
@@ -25,7 +26,8 @@ def get_destination_lat_long():
 
 
 def get_postcodes():
-  postcodes_csv = st.file_uploader("Upload CSV file containing list of postcodes (one column, with one postcode in each row):")
+  postcodes_csv = st.file_uploader("Upload CSV file containing list of postcodes \
+                                  (one column, with one postcode per row):")
   if postcodes_csv is not None:
     postcodes_df = pd.read_csv(postcodes_csv, names=["postcodes"], dtype=object)
     return postcodes_df
@@ -60,6 +62,8 @@ def calc_distance(df, dest_lat_long):
   if df is not None:
     df = df[df["Latitude"].notna() & df["Longitude"].notna()]
     for i, row in df.iterrows():
+      if len(df) > 10 and i % 10 == 0:
+        time.sleep(1)  # add time delay to not overwhelm server with requests
       # Call Open Source Routing Machine (OSRM) to calculate driving distance
       response = requests.get(f"""http://router.project-osrm.org/route/v1/driving/{destination_longitude},{destination_latitude};{row["Longitude"]},{row["Latitude"]}?overview=false""")
       results = json.loads(response.content)
@@ -83,17 +87,16 @@ def main():
       st.markdown("Postcodes from file:")
       st.write(postcodes_df)
 
-      if postcodes_df is not None:
-        geocoded_data = get_postcodes_lat_long(postcodes_df)
-        # st.markdown("Here are the latitudes and longitudes:")
-        # st.write(geocoded_data)
+      geocoded_data = get_postcodes_lat_long(postcodes_df)
 
-        with st.spinner("Calculating distances..."):
-          distances_df = calc_distance(geocoded_data, destination_lat_long)
-        st.markdown("Here are the driving distances:")
-        st.write(distances_df)
+      with st.spinner("Calculating distances from all postcodes to destination..."):
+        distances_df = calc_distance(geocoded_data, destination_lat_long)
+      st.markdown("Here are the driving distances:")
+      st.write(distances_df)
 
-        st.markdown(f"Total distance from all postcodes to {destination_address} is {sum(distances_df['Distance (km)']):.2f} km")
+      st.markdown(f"""<h3>Total distance from all postcodes to 
+                  <span style="color:blue">{destination_address}</span> is 
+                  {sum(distances_df['Distance (km)']):.2f} km</h3>""", unsafe_allow_html=True)
     else:
       return
 
