@@ -78,7 +78,8 @@ def calc_distance(df, dest_lat_long):
 
 def draw_map(dest_lat_long, data):
   # Plot marker for destination
-  map = folium.Map(location=[dest_lat_long[0], dest_lat_long[1]])
+  map = folium.Map(location=[dest_lat_long[0], dest_lat_long[1]], 
+                    zoom_control=False, scrollWheelZoom=False, dragging=False)
   folium.Marker([45.5236, -122.6750], color='red').add_to(map)
   # Plot marker for each postcode
   for i, row in data.iterrows():
