@@ -2,4 +2,3 @@ pgeocode
 geopy
 pandas
 requests
-json
