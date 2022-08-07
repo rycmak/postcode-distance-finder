@@ -8,6 +8,8 @@ import pandas as pd
 import requests
 import json
 import time
+import folium
+from streamlit_folium import st_folium
 
 st.title("Find total distance from list of postcodes to destination")
 
@@ -52,7 +54,7 @@ def get_postcodes_lat_long(df):
   else:
     return None
 
-  # consider case when postcode not recognized
+  # consider cases when postcode not recognized
 
 
 def calc_distance(df, dest_lat_long):
@@ -74,6 +76,16 @@ def calc_distance(df, dest_lat_long):
     return None
 
 
+def draw_map(dest_lat_long, data):
+  # Plot marker for destination
+  map = folium.Map(location=[dest_lat_long[0], dest_lat_long[1]])
+  folium.Marker([45.5236, -122.6750], color='red').add_to(map)
+  # Plot marker for each postcode
+  for i, row in data.iterrows():
+    folium.Marker([row["Latitude"], row["Longitude"]], color='blue').add_to(map)
+  st_folium(map, width=800)
+
+
 def main():
   destination_address, destination_lat_long = get_destination_lat_long()
   if not destination_address:
@@ -88,6 +100,8 @@ def main():
       st.write(postcodes_df)
 
       geocoded_data = get_postcodes_lat_long(postcodes_df)
+      
+      draw_map(destination_lat_long, geocoded_data)
 
       with st.spinner("Calculating distances from all postcodes to destination..."):
         distances_df = calc_distance(geocoded_data, destination_lat_long)

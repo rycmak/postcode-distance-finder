@@ -2,3 +2,5 @@ pgeocode
 geopy
 pandas
 requests
+folium
+streamlit-folium
