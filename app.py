@@ -111,12 +111,12 @@ def main():
       st.markdown("Map of target postcodes (blue circles) and destination (red circle)")
       draw_map(destination_lat_long, geocoded_data)
 
-      with st.spinner("Calculating distances from target postcodes to destination..."):
+      with st.spinner("Calculating driving distances from target postcodes to destination..."):
         distances_df = calc_distance(geocoded_data, destination_lat_long)
-      st.markdown("Here are the driving distances:")
+      st.markdown("Driving distance from each target postcode to destination:")
       st.write(distances_df)
 
-      st.markdown(f"""<h3>Total distance from target postcodes to 
+      st.markdown(f"""<h3>Total driving distance from target postcodes to 
                   <span style="color:blue">{destination_address}</span> is 
                   {sum(distances_df['Distance (km)']):.2f} km</h3>""", unsafe_allow_html=True)
     else:
