@@ -11,7 +11,9 @@ import time
 import folium
 from streamlit_folium import st_folium
 
+
 st.title("Find total distance from list of postcodes to destination")
+
 
 def get_destination_lat_long():
   destination_address = st.text_input("Input destination address and press Enter:",
@@ -80,19 +82,19 @@ def draw_map(dest_lat_long, data):
   # Plot marker for destination
   map = folium.Map(location=[dest_lat_long[0], dest_lat_long[1]], 
                     zoom_control=False, scrollWheelZoom=False, dragging=False)
-  folium.Marker([45.5236, -122.6750], color='red').add_to(map)
+  folium.CircleMarker([dest_lat_long[0], dest_lat_long[1]], radius=5, color='red').add_to(map)
   # Plot marker for each postcode
   for i, row in data.iterrows():
-    folium.Marker([row["Latitude"], row["Longitude"]], color='blue').add_to(map)
-  st_folium(map, width=800)
+    folium.CircleMarker([row["Latitude"], row["Longitude"]], radius=3, color='blue').add_to(map)
+  st_folium(map, width=900)
 
 
 def main():
   destination_address, destination_lat_long = get_destination_lat_long()
   if not destination_address:
     return
-  
-  elif destination_lat_long:
+
+  if destination_lat_long:
     st.markdown(f"Destination latitude and longitude: {destination_lat_long}")
 
     postcodes_df = get_postcodes()
@@ -101,7 +103,7 @@ def main():
       st.write(postcodes_df)
 
       geocoded_data = get_postcodes_lat_long(postcodes_df)
-      
+
       draw_map(destination_lat_long, geocoded_data)
 
       with st.spinner("Calculating distances from all postcodes to destination..."):
