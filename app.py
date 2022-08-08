@@ -52,7 +52,12 @@ def get_postcodes_lat_long(df):
                                           'Postcode': postcode_info["postal_code"], 
                                           'Latitude': postcode_info["latitude"], 
                                           'Longitude': postcode_info["longitude"]}, ignore_index = True)
-    return geocoded_data
+    # Discard rows where lat/long could not be found
+    no_lat_long = geocoded_data[geocoded_data["Latitude"].isna() | geocoded_data["Longitude"].isna()]
+    if no_lat_long is not None:
+      st.markdown("The following postcodes could not be geo-coded and will be ignored for now:")
+      st.write(no_lat_long)
+    return geocoded_data[geocoded_data["Latitude"].notna() & geocoded_data["Longitude"].notna()]
   else:
     return None
 
@@ -64,7 +69,6 @@ def calc_distance(df, dest_lat_long):
   destination_latitude = dest_lat_long[0]
   destination_longitude = dest_lat_long[1]
   if df is not None:
-    df = df[df["Latitude"].notna() & df["Longitude"].notna()]
     for i, row in df.iterrows():
       if len(df) > 10 and i % 10 == 0:
         time.sleep(1)  # add time delay to not overwhelm server with requests
@@ -104,14 +108,15 @@ def main():
 
       geocoded_data = get_postcodes_lat_long(postcodes_df)
 
+      st.markdown("Map of target postcodes (blue circles) and destination (red circle)")
       draw_map(destination_lat_long, geocoded_data)
 
-      with st.spinner("Calculating distances from all postcodes to destination..."):
+      with st.spinner("Calculating distances from target postcodes to destination..."):
         distances_df = calc_distance(geocoded_data, destination_lat_long)
       st.markdown("Here are the driving distances:")
       st.write(distances_df)
 
-      st.markdown(f"""<h3>Total distance from all postcodes to 
+      st.markdown(f"""<h3>Total distance from target postcodes to 
                   <span style="color:blue">{destination_address}</span> is 
                   {sum(distances_df['Distance (km)']):.2f} km</h3>""", unsafe_allow_html=True)
     else:
