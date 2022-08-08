@@ -54,7 +54,7 @@ def get_postcodes_lat_long(df):
                                           'Longitude': postcode_info["longitude"]}, ignore_index = True)
     # Discard rows where lat/long could not be found
     no_lat_long = geocoded_data[geocoded_data["Latitude"].isna() | geocoded_data["Longitude"].isna()]
-    if no_lat_long is not None:
+    if len(no_lat_long) > 0:
       st.markdown("The following postcodes could not be geo-coded and will be ignored for now:")
       st.write(no_lat_long)
     return geocoded_data[geocoded_data["Latitude"].notna() & geocoded_data["Longitude"].notna()]
